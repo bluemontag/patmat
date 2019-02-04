@@ -1,0 +1,2 @@
+# patmat
+Huffman Coding excercise
