@@ -75,8 +75,10 @@ object Huffman {
     * println("integer is  : "+ theInt)
     * }
     */
-  def times(chars: List[Char]): List[(Char, Int)] =
-    (chars.foldLeft[Map[Char, Int]](Map.empty)((m, c) => m + (c -> (m.getOrElse(c, 0) + 1)))).toList
+  def times(chars: List[Char]): List[(Char, Int)] = {
+    val result = chars.foldLeft[Map[Char, Int]](Map.empty)((m, c) => m + (c -> (m.getOrElse(c, 0) + 1)))
+    result.toList
+  }
 
   /**
     * Returns a list of `Leaf` nodes for a given frequency table `freqs`.
@@ -88,18 +90,19 @@ object Huffman {
   def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] = freqs match {
     case Nil => Nil
     case (char, freq) :: xs => {
-        insertOrdered(makeOrderedLeafList(xs), Leaf(char, freq))
+        insertOrdered(Leaf(char, freq), makeOrderedLeafList(xs))
     }
   }
 
-  def insertOrdered(leafs: List[Leaf], leaf:Leaf) : List[Leaf] = leafs match {
-      case Nil => List(leaf)
-      case Leaf(c2,w2)::xs => {
-        leaf match {
-          case Leaf(_, w1) => if (w1 > w2) Leaf(c2, w2) :: insertOrdered(xs, leaf) else leaf :: Leaf(c2, w2) :: xs
+  def insertOrdered(leaf:Leaf, leafs: List[Leaf]) : List[Leaf] = leafs match {
+    case Nil => List(leaf)
+    case x :: xs =>
+      leaf match {
+        case Leaf(_, w1) => x match {
+          case Leaf(_, w2) => if (w1 > w2) x :: insertOrdered(leaf, xs) else leaf :: x :: xs
         }
       }
-  }
+  }//leafs match
 
   /**
     * Checks whether the list `trees` contains only one single code tree.
@@ -225,9 +228,9 @@ object Huffman {
       case Leaf(_,_) => encodeAcc(originalTree, originalTree, partial)(cs) //consume input
       case Fork(left, right, _, _) =>
         if (chars(left).contains(c)) { //have to go to left
-          encodeAcc(left, originalTree, 0 :: partial )(c::cs) //put a 0 go on the left tree
+          encodeAcc(left, originalTree, 0 :: partial )(text) //put a 0 go on the left tree
         } else if (chars(right).contains(c)) {
-          encodeAcc(right, originalTree, 1 :: partial )(c::cs) //put a 1 go on the right tree
+          encodeAcc(right, originalTree, 1 :: partial )(text) //put a 1 go on the right tree
         } else {
           throw new Error("The specified symbol does not exist in the tree.")
         }
@@ -298,7 +301,7 @@ object Main extends App {
 
   println(convert(t2))
 
-  var secret = decodedSecret.mkString
+  val secret = decodedSecret.mkString
   println("Secret:" + secret)
 }
 
